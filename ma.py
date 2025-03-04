@@ -28,6 +28,7 @@ class GestureControl:
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         self.draw = mp.solutions.drawing_utils
         self.mouse_movement_enabled = False
+        self.is_dragging = False
 
     def process_frame(self):
         ret, frame = self.cap.read()
@@ -68,18 +69,19 @@ class GestureControl:
             mouse.release(Button.left)
         elif self.right_click(landmark_list, thumb_index_dist):
             mouse.press(Button.right)
-            mouse.release(Button.right)
             time.sleep(0.2)
+            mouse.release(Button.right)
+            
         elif self.double_click(landmark_list, thumb_index_dist):
-            pyautogui.doubleClick()
+            mouse.click(Button.left, 2)  # Adjust the interval to your needs
+            time.sleep(0.5)
+            print("Double clicked")
         elif self.screenshot(landmark_list, thumb_index_dist):
-            # Get the path for the Pictures folder
             pictures_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Picture')
-
-    # Ensure the Pictures folder exists
             if not os.path.exists(pictures_path):
                os.makedirs(pictures_path)
             im1 = pyautogui.screenshot()
+            time.sleep(0.5)
             label = random.randint(1, 1000)
             screenshot_filename= f"my_screenshot_{label}.png"
             im1.save(os.path.join(pictures_path, screenshot_filename))
@@ -94,6 +96,24 @@ class GestureControl:
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             cv2.putText(frame_bgr, "Scrolling Down", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             pyautogui.scroll(1)
+        elif self.drag_gesture(landmark_list,thumb_index_dist):
+            index_finger_tip = self.find_finger_tip(processed)
+    
+            if index_finger_tip is not None:
+                x, y = int(index_finger_tip.x * screen_width), int(index_finger_tip.y * screen_height)
+ 
+            if not self.is_dragging:  # Start right-click drag
+                pyautogui.mouseDown(button='left')
+                self.is_dragging = True
+                print("DEBUG:left-click dragging started")
+            pyautogui.moveTo(x, y,duration=0.05)  # Smooth movement
+        # else:
+        #     if self.is_dragging:  # Stop dragging when gesture stops
+        #      pyautogui.mouseUp(button='left')
+        #      self.is_dragging = False
+        #      print("DEBUG: Right-click dragging stopped")
+
+
 
     def find_finger_tip(self, processed):
         if processed.multi_hand_landmarks:
@@ -105,7 +125,7 @@ class GestureControl:
         if index_finger_tip is not None:
             x = int(index_finger_tip.x * screen_width)
             y = int(index_finger_tip.y * screen_height)
-            pyautogui.moveTo(x, y)
+            pyautogui.moveTo(x, y , duration=0.01) 
 
     def left_click(self, landmark_list, thumb_index_dist):
         return (
@@ -125,13 +145,17 @@ class GestureControl:
         return (
             util.get_angle(landmark_list[5], landmark_list[6], landmark_list[8]) < 70 and
             util.get_angle(landmark_list[9], landmark_list[10], landmark_list[12]) < 70 and
-            thumb_index_dist > 50
+            util.get_angle(landmark_list[13], landmark_list[14], landmark_list[16]) < 70 and
+            util.get_angle(landmark_list[17], landmark_list[18], landmark_list[20]) <70  and 
+            thumb_index_dist > 100
         )
 
     def screenshot(self, landmark_list, thumb_index_dist):
         return (
             util.get_angle(landmark_list[5], landmark_list[6], landmark_list[8]) < 50 and
             util.get_angle(landmark_list[9], landmark_list[10], landmark_list[12]) < 50 and
+            util.get_angle(landmark_list[13], landmark_list[14], landmark_list[16]) < 50 and
+            util.get_angle(landmark_list[17], landmark_list[18], landmark_list[20]) < 50 and
             thumb_index_dist < 50
         )
 
@@ -160,6 +184,16 @@ class GestureControl:
             util.get_angle(landmark_list[17], landmark_list[18], landmark_list[20]) > 60  and
             util.get_distance([landmark_list[4], landmark_list[5]]) < 50 
         )
+    #fixme:drag
+    def drag_gesture(self, landmark_list, thumb_index_dist):
+      return (
+            util.get_angle(landmark_list[5], landmark_list[6], landmark_list[8]) <30 and 
+            util.get_angle(landmark_list[9], landmark_list[10], landmark_list[12]) > 90 and  
+            util.get_angle(landmark_list[13], landmark_list[14], landmark_list[16]) > 90 and  
+            util.get_angle(landmark_list[17], landmark_list[18], landmark_list[20]) > 90 and
+            thumb_index_dist < 50 
+        )
+
 
     def release_resources(self):
         self.cap.release()
