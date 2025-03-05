@@ -73,7 +73,7 @@ class GestureControl:
             mouse.release(Button.right)
             
         elif self.double_click(landmark_list, thumb_index_dist):
-            mouse.click(Button.left, 2)  # Adjust the interval to your needs
+            mouse.click(Button.left, 2)  
             time.sleep(0.5)
             print("Double clicked")
         elif self.screenshot(landmark_list, thumb_index_dist):
@@ -102,16 +102,16 @@ class GestureControl:
             if index_finger_tip is not None:
                 x, y = int(index_finger_tip.x * screen_width), int(index_finger_tip.y * screen_height)
  
-            if not self.is_dragging:  # Start right-click drag
+            if not self.is_dragging: 
                 pyautogui.mouseDown(button='left')
                 self.is_dragging = True
-                print("DEBUG:left-click dragging started")
-            pyautogui.moveTo(x, y,duration=0.05)  # Smooth movement
-        # else:
-        #     if self.is_dragging:  # Stop dragging when gesture stops
-        #      pyautogui.mouseUp(button='left')
-        #      self.is_dragging = False
-        #      print("DEBUG: Right-click dragging stopped")
+                print("left-click dragging started")
+            pyautogui.moveTo(x, y,duration=0.05)  
+        else:
+            if self.is_dragging:
+             pyautogui.mouseUp(button='left')
+             self.is_dragging = False
+             print("left-click dragging stopped")
 
 
 
@@ -184,14 +184,14 @@ class GestureControl:
             util.get_angle(landmark_list[17], landmark_list[18], landmark_list[20]) > 60  and
             util.get_distance([landmark_list[4], landmark_list[5]]) < 50 
         )
-    #fixme:drag
     def drag_gesture(self, landmark_list, thumb_index_dist):
       return (
-            util.get_angle(landmark_list[5], landmark_list[6], landmark_list[8]) <30 and 
-            util.get_angle(landmark_list[9], landmark_list[10], landmark_list[12]) > 90 and  
-            util.get_angle(landmark_list[13], landmark_list[14], landmark_list[16]) > 90 and  
-            util.get_angle(landmark_list[17], landmark_list[18], landmark_list[20]) > 90 and
-            thumb_index_dist < 50 
+            util.get_angle(landmark_list[5], landmark_list[6], landmark_list[8]) >90 and 
+            util.get_angle(landmark_list[9], landmark_list[10], landmark_list[12]) <70 and  
+            util.get_angle(landmark_list[13], landmark_list[14], landmark_list[16]) <70  and  
+            util.get_angle(landmark_list[17], landmark_list[18], landmark_list[20]) >90 and
+            thumb_index_dist < 130
+            
         )
 
 
